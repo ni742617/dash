@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="hu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#100d08">
+<title>EMBER // FIELD TERMINAL</title>
+<style>
+:root{
+  color-scheme:dark;
+  --bg:#0b0906; --panel:#151008; --panel2:#1c150b; --line:#62431b;
+  --amber:#ffbd55; --bright:#ffe0a0; --dim:#b17a31; --muted:#8b704d;
+  --green:#a7c58a; --red:#ff8a68;
+  --glow:0 0 18px rgba(255,177,64,.12);
+  font-family: ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--amber)}
+body{
+  background:
+   radial-gradient(ellipse at 50% -20%,rgba(151,88,19,.18),transparent 55%),
+   linear-gradient(180deg,#100d08,#080705);
+  padding:clamp(10px,2vw,24px);
+  text-shadow:0 0 8px rgba(255,176,60,.13);
+}
+body:after{content:"";pointer-events:none;position:fixed;inset:0;opacity:.12;z-index:10;
+ background:repeating-linear-gradient(to bottom,transparent 0,transparent 3px,rgba(255,190,100,.07) 4px);}
+.shell{max-width:1200px;margin:0 auto}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line);padding:5px 2px 14px;margin-bottom:14px}
+.brand{display:flex;align-items:center;gap:11px;min-width:0}
+.mark{width:38px;height:38px;border:1px solid var(--amber);display:grid;place-items:center;transform:rotate(45deg);box-shadow:var(--glow);flex:none}
+.mark span{transform:rotate(-45deg);font-size:20px;font-weight:bold}
+.brand h1{font-size:clamp(15px,2.5vw,22px);letter-spacing:.13em;margin:0;color:var(--bright)}
+.brand p{margin:5px 0 0;font-size:10px;letter-spacing:.2em;color:var(--dim)}
+.header-right{text-align:right;font-size:11px;line-height:1.8;white-space:nowrap}
+.status-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);margin-right:6px}
+.grid{display:grid;grid-template-columns:1.35fr 1fr 1fr;gap:12px}
+.panel{border:1px solid var(--line);background:linear-gradient(135deg,rgba(31,23,12,.96),rgba(15,12,8,.97));box-shadow:var(--glow);min-width:0}
+.panel-head{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid #3d2b14;font-size:10px;letter-spacing:.16em;color:var(--dim)}
+.panel-head b{color:var(--amber);font-weight:normal}
+.panel-body{padding:13px}
+.clock-panel{grid-row:span 2}
+.bigtime{font-size:clamp(38px,8vw,76px);letter-spacing:-.06em;line-height:1;color:var(--bright);text-shadow:0 0 24px rgba(255,181,74,.18);font-variant-numeric:tabular-nums}
+.date{margin-top:10px;font-size:12px;color:var(--dim);letter-spacing:.12em}
+.rule{height:1px;background:#3d2b14;margin:18px 0}
+.readout{display:grid;grid-template-columns:1fr auto;gap:9px;font-size:11px;padding:7px 0;border-bottom:1px dashed #382713}
+.readout:last-child{border-bottom:0}
+.readout span:first-child{color:var(--muted)}
+.readout strong{color:var(--bright);font-weight:normal;text-align:right}
+.badge{border:1px solid var(--line);padding:4px 7px;font-size:10px;color:var(--dim);white-space:nowrap}
+.actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+button,.buttonlike{font:inherit;color:var(--amber);background:#191208;border:1px solid #68451b;padding:12px 10px;min-height:48px;text-align:left;cursor:pointer;touch-action:manipulation}
+button:active{background:#35220c;transform:translateY(1px)}
+button:hover{border-color:var(--bright);background:#211708}
+button small{display:block;font-size:9px;color:var(--muted);margin-top:5px}
+.btn-icon{font-size:16px;margin-right:7px;color:var(--bright)}
+.notearea{width:100%;min-height:120px;resize:vertical;border:1px solid #513819;background:#0c0a07;color:var(--bright);padding:10px;font:12px/1.5 inherit;outline:none}
+.notearea:focus{border-color:var(--amber)}
+textarea{font-family:inherit}
+.note-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:10px;color:var(--muted);margin-top:8px}
+.note-foot button{min-height:34px;padding:7px 10px;font-size:10px}
+.log{font-size:11px;line-height:1.7;color:var(--dim);min-height:100px}
+.log div{border-bottom:1px dashed #382713;padding:5px 0}
+.log time{color:var(--muted);margin-right:8px}
+.meter{height:6px;background:#30200e;margin-top:8px;overflow:hidden}
+.meter span{display:block;height:100%;width:50%;background:var(--amber);box-shadow:0 0 8px rgba(255,189,85,.3);transition:width .3s}
+.footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:14px 2px 2px;color:#73552e;font-size:9px;letter-spacing:.12em}
+.wide{grid-column:span 2}
+.flash{color:var(--green)!important}
+.hidden{display:none!important}
+@media(max-width:760px){
+ .grid{grid-template-columns:1fr 1fr}
+ .clock-panel{grid-column:span 2;grid-row:auto}
+ .wide{grid-column:span 2}
+ .bigtime{font-size:clamp(42px,12vw,70px)}
+}
+@media(max-width:430px){
+ body{padding:9px}
+ .grid{grid-template-columns:1fr}
+ .clock-panel,.wide{grid-column:auto}
+ .header-right{font-size:9px}
+ .brand p{font-size:8px}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+<header>
+  <div class="brand">
+    <div class="mark"><span>Ｅ</span></div>
+    <div><h1>EMBER / FIELD TERMINAL</h1><p>PORTABLE SYSTEMS INTERFACE // MK-I</p></div>
+  </div>
+  <div class="header-right"><span class="status-dot"></span><span id="online">LINK CHECK</span><br><span id="headerDate">LOCAL NODE</span></div>
+</header>
+
+<main class="grid">
+  <section class="panel clock-panel">
+    <div class="panel-head"><b>01 / CHRONOMETER</b><span class="badge">LOCAL TIME</span></div>
+    <div class="panel-body">
+      <div class="bigtime" id="clock">00:00:00</div>
+      <div class="date" id="date">INITIALIZING DATE...</div>
+      <div class="rule"></div>
+      <div class="readout"><span>SESSION ELAPSED</span><strong id="session">00:00:00</strong></div>
+      <div class="readout"><span>TIMEZONE</span><strong id="timezone">LOCAL</strong></div>
+      <div class="readout"><span>DISPLAY MODE</span><strong>TOUCH / LOCAL</strong></div>
+      <div class="rule"></div>
+      <div class="panel-head" style="padding:0 0 10px;border:0"><b>QUICK ACCESS</b><span>SELECT MODULE</span></div>
+      <div class="actions">
+        <button onclick="showModule('notes')"><span class="btn-icon">▤</span>FIELD NOTES<small>LOCAL MEMO PAD</small></button>
+        <button onclick="showModule('tools')"><span class="btn-icon">⌁</span>TOOLS<small>USEFUL UTILITIES</small></button>
+        <button onclick="showModule('about')"><span class="btn-icon">◈</span>SYSTEM INFO<small>BROWSER CAPABILITIES</small></button>
+        <button onclick="showModule('log')"><span class="btn-icon">▣</span>EVENT LOG<small>SESSION EVENTS</small></button>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head"><b>02 / DEVICE STATUS</b><span class="badge" id="deviceBadge">PROBING</span></div>
+    <div class="panel-body">
+      <div class="readout"><span>NETWORK</span><strong id="network">CHECKING</strong></div>
+      <div class="readout"><span>BATTERY API</span><strong id="battery">CHECKING</strong></div>
+      <div class="meter"><span id="batteryMeter" style="width:0%"></span></div>
+      <div class="readout"><span>POWER STATE</span><strong id="charging">UNKNOWN</strong></div>
+      <div class="readout"><span>SCREEN</span><strong id="screenSize">DETECTING</strong></div>
+      <div class="readout"><span>LANGUAGE</span><strong id="language">LOCAL</strong></div>
+      <div class="readout"><span>MODE</span><strong id="offlineMode">STANDBY</strong></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head"><b>03 / QUICK UTILITIES</b><span class="badge">LOCAL</span></div>
+    <div class="panel-body">
+      <div class="actions">
+        <button onclick="toggleFullscreen()"><span class="btn-icon">⛶</span>FULLSCREEN<small>IMMERSIVE VIEW</small></button>
+        <button onclick="keepAwakeInfo()"><span class="btn-icon">◉</span>DISPLAY<small id="wakeStatus">WAKE LOCK STATUS</small></button>
+        <button onclick="addLog('Manual status refresh requested')"><span class="btn-icon">↻</span>REFRESH LOG<small>ADD EVENT</small></button>
+        <button onclick="showModule('notes')"><span class="btn-icon">✎</span>QUICK NOTE<small>LOCAL STORAGE</small></button>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel wide" id="modulePanel">
+    <div class="panel-head"><b id="moduleTitle">04 / FIELD NOTES</b><span class="badge" id="saveStatus">AUTOSAVE READY</span></div>
+    <div class="panel-body" id="moduleBody">
+      <textarea id="notes" class="notearea" placeholder="> ENTER FIELD NOTES HERE...&#10;> NOTES ARE SAVED ON THIS DEVICE WHEN SUPPORTED."></textarea>
+      <div class="note-foot"><span id="noteCount">0 CHARACTERS</span><button onclick="clearNotes()">CLEAR NOTES</button></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head"><b>05 / EVENT STREAM</b><span class="badge">SESSION</span></div>
+    <div class="panel-body"><div class="log" id="eventLog"></div></div>
+  </section>
+</main>
+
+<footer class="footer">
+  <span>EMBER TERMINAL // OFFLINE-FIRST INTERFACE</span>
+  <span>NO EXTERNAL LIBRARIES · NO ACCOUNT REQUIRED</span>
+  <span id="footerStatus">ALL MODULES STANDBY</span>
+</footer>
+</div>
+
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  const started = Date.now();
+  const pad = n => String(n).padStart(2,'0');
+  const safeStore = {
+    get(k){try{return localStorage.getItem(k)}catch(e){return null}},
+    set(k,v){try{localStorage.setItem(k,v);return true}catch(e){return false}},
+    del(k){try{localStorage.removeItem(k);return true}catch(e){return false}}
+  };
+  function tick(){
+    const now = new Date();
+    $('clock').textContent = [pad(now.getHours()),pad(now.getMinutes()),pad(now.getSeconds())].join(':');
+    $('date').textContent = now.toLocaleDateString('hu-HU',{weekday:'long',year:'numeric',month:'long',day:'numeric'}).toUpperCase();
+    $('headerDate').textContent = now.toLocaleDateString('hu-HU');
+    const s = Math.floor((Date.now()-started)/1000);
+    $('session').textContent = [pad(Math.floor(s/3600)),pad(Math.floor(s/60)%60),pad(s%60)].join(':');
+  }
+  tick(); setInterval(tick,1000);
+  try{$('timezone').textContent=Intl.DateTimeFormat().resolvedOptions().timeZone||'LOCAL'}catch(e){}
+  $('language').textContent=(navigator.language||'unknown').toUpperCase();
+  $('screenSize').textContent=window.innerWidth+' × '+window.innerHeight;
+  window.addEventListener('resize',()=>{$('screenSize').textContent=window.innerWidth+' × '+window.innerHeight});
+  function network(){
+    const online=navigator.onLine;
+    $('network').textContent=online?'ONLINE':'OFFLINE';
+    $('online').textContent=online?'LINK AVAILABLE':'OFFLINE MODE';
+    $('offlineMode').textContent=online?'CONNECTED':'LOCAL ONLY';
+    $('footerStatus').textContent=online?'NETWORK AVAILABLE':'OFFLINE FUNCTIONS ACTIVE';
+  }
+  network(); window.addEventListener('online',network);window.addEventListener('offline',network);
+  if(navigator.getBattery){
+    navigator.getBattery().then(b=>{
+      function update(){
+        const p=Math.round(b.level*100);
+        $('battery').textContent=p+'%';
+        $('batteryMeter').style.width=p+'%';
+        $('charging').textContent=b.charging?'CHARGING':'ON BATTERY';
+      }
+      update();b.addEventListener('levelchange',update);b.addEventListener('chargingchange',update);
+      $('deviceBadge').textContent='BATTERY LINKED';
+    }).catch(()=>{batteryUnavailable()});
+  }else batteryUnavailable();
+  function batteryUnavailable(){
+    $('battery').textContent='NOT EXPOSED';
+    $('charging').textContent='UNAVAILABLE';
+    $('batteryMeter').style.width='0%';
+    $('deviceBadge').textContent='BROWSER LIMITED';
+  }
+  let events=[];
+  try{events=JSON.parse(safeStore.get('ember_events')||'[]')}catch(e){events=[]}
+  function renderLog(){
+    $('eventLog').innerHTML='';
+    events.slice(-5).reverse().forEach(e=>{
+      const div=document.createElement('div'),time=document.createElement('time');
+      time.textContent=e.time;div.appendChild(time);div.appendChild(document.createTextNode(e.text));$('eventLog').appendChild(div);
+    });
+    if(!events.length){$('eventLog').textContent='> TERMINAL READY\n> NO PRIOR EVENTS';}
+  }
+  window.addLog=function(text){
+    const now=new Date();
+    events.push({time:pad(now.getHours())+':'+pad(now.getMinutes()),text:text});
+    events=events.slice(-30);safeStore.set('ember_events',JSON.stringify(events));renderLog();
+  };
+  renderLog();
+  $('notes').value=safeStore.get('ember_notes')||'';
+  function updateNoteCount(){
+    $('noteCount').textContent=$('notes').value.length+' CHARACTERS';
+    const ok=safeStore.set('ember_notes',$('notes').value);
+    $('saveStatus').textContent=ok?'LOCAL AUTOSAVE':'STORAGE UNAVAILABLE';
+    $('saveStatus').classList.toggle('flash',ok);
+  }
+  $('notes').addEventListener('input',updateNoteCount);updateNoteCount();
+  window.clearNotes=function(){
+    if(confirm('Clear all saved field notes on this device?')){
+      $('notes').value='';updateNoteCount();addLog('Field notes cleared');
+    }
+  };
+  window.toggleFullscreen=function(){
+    if(!document.fullscreenElement){document.documentElement.requestFullscreen?.().then(()=>addLog('Fullscreen enabled')).catch(()=>addLog('Fullscreen unavailable'))}
+    else document.exitFullscreen?.().then(()=>addLog('Fullscreen disabled'));
+  };
+  window.keepAwakeInfo=function(){
+    if(navigator.wakeLock && navigator.wakeLock.request){
+      navigator.wakeLock.request('screen').then(()=>{$('wakeStatus').textContent='WAKE LOCK ACTIVE';addLog('Screen wake lock requested')}).catch(()=>{$('wakeStatus').textContent='NOT AVAILABLE';addLog('Wake lock unavailable')});
+    }else{$('wakeStatus').textContent='NOT SUPPORTED';addLog('Wake lock not supported by browser')}
+  };
+  const moduleOriginal=$('moduleBody').innerHTML;
+  window.showModule=function(name){
+    const title=$('moduleTitle'),body=$('moduleBody');
+    if(name==='notes'){
+      title.textContent='04 / FIELD NOTES';body.innerHTML=moduleOriginal;
+      const ta=$('notes');ta.value=safeStore.get('ember_notes')||'';
+      function count(){ $('noteCount').textContent=ta.value.length+' CHARACTERS';$('saveStatus').textContent=safeStore.set('ember_notes',ta.value)?'LOCAL AUTOSAVE':'STORAGE UNAVAILABLE';}
+      ta.addEventListener('input',count);window.clearNotes=function(){if(confirm('Clear all saved field notes on this device?')){ta.value='';count();addLog('Field notes cleared')}};count();
+    }else if(name==='tools'){
+      title.textContent='04 / UTILITIES';
+      body.innerHTML='<div class="readout"><span>UNIX TIME</span><strong id="unixTime"></strong></div><div class="readout"><span>LOCAL DATE</span><strong id="localDate"></strong></div><div class="readout"><span>VIEWPORT</span><strong>'+innerWidth+' × '+innerHeight+'</strong></div><div class="rule"></div><div class="actions"><button onclick="copyText(new Date().toISOString())">COPY ISO DATE<small>IF CLIPBOARD IS ALLOWED</small></button><button onclick="copyText(location.href)">COPY PAGE ADDRESS<small>IF CLIPBOARD IS ALLOWED</small></button><button onclick="showModule(\'notes\')">BACK TO NOTES<small>RETURN TO MEMO PAD</small></button></div><p id="toolFeedback" style="font-size:10px;color:var(--muted)">LOCAL UTILITIES · NO INTERNET REQUIRED</p>';
+      $('unixTime').textContent=Math.floor(Date.now()/1000);$('localDate').textContent=new Date().toLocaleDateString('hu-HU');
+    }else if(name==='about'){
+      title.textContent='04 / BROWSER CAPABILITIES';
+      body.innerHTML='<div class="readout"><span>USER AGENT</span><strong style="max-width:65%;overflow-wrap:anywhere">'+navigator.userAgent.replace(/</g,'&lt;')+'</strong></div><div class="readout"><span>LANGUAGE</span><strong>'+navigator.language+'</strong></div><div class="readout"><span>COOKIES</span><strong>'+(navigator.cookieEnabled?'ENABLED':'DISABLED')+'</strong></div><div class="readout"><span>BATTERY API</span><strong>'+(navigator.getBattery?'AVAILABLE':'NOT EXPOSED')+'</strong></div><div class="readout"><span>WAKE LOCK</span><strong>'+(navigator.wakeLock?'AVAILABLE':'NOT EXPOSED')+'</strong></div><div class="readout"><span>STORAGE</span><strong>'+(function(){try{localStorage.setItem('_test','1');localStorage.removeItem('_test');return 'AVAILABLE'}catch(e){return 'LIMITED'}})()+'</strong></div><p style="font-size:10px;color:var(--muted)">Browser pages cannot directly read CPU temperature, full system RAM, or all hardware telemetry without a local helper.</p>';
+    }else if(name==='log'){
+      title.textContent='04 / EVENT LOG';
+      body.innerHTML='<div class="log" id="fullLog"></div><div class="note-foot"><span>LAST SESSION EVENTS</span><button onclick="clearLog()">CLEAR LOG</button><button onclick="showModule(\'notes\')">BACK TO NOTES</button></div>';
+      $('fullLog').innerHTML='';
+      events.slice().reverse().forEach(e=>{const d=document.createElement('div');d.textContent=e.time+'  //  '+e.text;$('fullLog').appendChild(d)});
+      if(!events.length)$('fullLog').textContent='NO EVENTS';
+    }
+  };
+  window.clearLog=function(){if(confirm('Clear the event log?')){events=[];safeStore.set('ember_events','[]');renderLog();addLog('Event log reset');showModule('log')}};
+  window.copyText=async function(t){
+    try{await navigator.clipboard.writeText(t);$('toolFeedback').textContent='COPIED TO CLIPBOARD';}
+    catch(e){if($('toolFeedback'))$('toolFeedback').textContent='CLIPBOARD BLOCKED BY BROWSER';}
+  };
+  addLog('EMBER terminal initialized');
+  addLog('Offline-first interface ready');
+})();
+</script>
+</body>
+</html>
